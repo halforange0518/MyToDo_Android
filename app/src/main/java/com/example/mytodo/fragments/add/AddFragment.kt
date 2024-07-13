@@ -19,10 +19,12 @@ import com.example.mytodo.R
 import com.example.mytodo.data.models.ToDoData
 import com.example.mytodo.data.models.Priority
 import com.example.mytodo.data.viewmodel.ToDoViewModel
+import com.example.mytodo.fragments.SharedViewModel
 
 class AddFragment : Fragment() {
 
     private val mToDoViewModel: ToDoViewModel by viewModels()
+    private val mSharedViewModel: SharedViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,6 +35,10 @@ class AddFragment : Fragment() {
 
         // 打开选项菜单
         setHasOptionsMenu(true)
+
+        val priorities_spinner = view.findViewById<Spinner>(R.id.priorities_spinner)
+        // 使用自定义的监听器
+        priorities_spinner.onItemSelectedListener = mSharedViewModel.listener
 
         return view
     }
@@ -58,12 +64,12 @@ class AddFragment : Fragment() {
         val mPriority = priorities_spinner?.selectedItem.toString()
         val mDescription = description_et?.text.toString()
 
-        val validation = verifyDataFromUser(mTitle, mDescription)
+        val validation = mSharedViewModel.verifyDataFromUser(mTitle, mDescription)
         if (validation) {
             val newData = ToDoData(
                 0,
                 mTitle,
-                parsePriority(mPriority),
+                mSharedViewModel.parsePriority(mPriority),
                 mDescription
             )
             mToDoViewModel.insertData(newData)
@@ -76,21 +82,6 @@ class AddFragment : Fragment() {
             Toast.makeText(requireContext(), "请填写数据", Toast.LENGTH_SHORT).show()
         }
 
-    }
-
-    private fun verifyDataFromUser(title: String, description: String): Boolean {
-        return if (TextUtils.isEmpty(title) || TextUtils.isEmpty(description)) {
-            false
-        } else !(title.isEmpty() || description.isEmpty())
-    }
-
-    private fun parsePriority(priority: String): Priority {
-        return when(priority){
-            "优先级 高" -> { Priority.HIGH }
-            "优先级 中" -> { Priority.MEDIUM }
-            "优先级 低" -> { Priority.LOW }
-            else -> Priority.LOW
-        }
     }
 
 }
